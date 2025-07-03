@@ -25,20 +25,32 @@ const operators = [
 
 export const QueryInput: React.FC<Props> = ({ setQuery, onRun, jsonFields, jsonArrayKey }) => {
   
-  const [filters, setFilters] = useState<Filter[]>([
-    { field: jsonFields[0] || "", operator: "==", value: "", not: false }
-  ]);
-  
+  const [filters, setFilters] = useState<Filter[]>([]);
+
   useEffect(() => {
     const expressions = filters.map(({ field, operator, value, not }) => {
       if (!field) return "";
 
       const prefix = not ? "!" : "";
-      const left = operator === "contains"
-        ? `contains(${field}, '${value}')`
-        : isNaN(Number(value))
-          ? `${field} ${operator} '${value}'`
-          : `${field} ${operator} \`${value}\``;
+      const isNumber = !isNaN(Number(value));
+      const valueExpr = isNumber ? `\`${value}\`` : `'${value}'`;
+
+      let left = "";
+
+      // Si ya es una expresión avanzada, como reviews[?rating == `1`], no la toques
+      if (field.includes("[?")) {
+        left = field;
+      }
+      else if (field.includes("._") && !field.includes("[")) {
+        const [arrayField, nestedField] = field.split("._");
+        left = `${arrayField}[?${nestedField} ${operator} ${valueExpr}]`;
+      }
+      else if (operator === "contains") {
+        left = `contains(${field}, '${value}')`;
+      }
+      else {
+        left = `${field} ${operator} ${valueExpr}`;
+      }
 
       return `${prefix}(${left})`;
     });
@@ -46,7 +58,9 @@ export const QueryInput: React.FC<Props> = ({ setQuery, onRun, jsonFields, jsonA
     const combined = expressions.filter(Boolean).join(" && ");
     const fullQuery = `${jsonArrayKey}[?${combined}]`;
     setQuery(fullQuery);
+    console.log("fullQuery:", fullQuery);
   }, [filters, setQuery, jsonArrayKey]);
+
 
   const updateFilter = (index: number, newFilter: Partial<Filter>) => {
     setFilters((prev) => {
@@ -128,4 +142,5 @@ export const QueryInput: React.FC<Props> = ({ setQuery, onRun, jsonFields, jsonA
       </div>
     </div>
   );
+
 };
