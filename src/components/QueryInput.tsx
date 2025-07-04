@@ -46,7 +46,7 @@ export const QueryInput: React.FC<Props> = ({ setQuery, onRun, jsonFields, jsonA
         left = `${arrayField}[?${nestedField} ${operator} ${valueExpr}]`;
       }
       else if (operator === "contains") {
-        left = `contains(${field}, '${value}')`;
+        left = `${field} && contains(${field}, '${value}')`;
       }
       else {
         left = `${field} ${operator} ${valueExpr}`;
