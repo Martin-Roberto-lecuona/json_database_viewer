@@ -16,26 +16,58 @@ function App() {
     setJsonInput(JSON.stringify(inventario, null, 2));
   }, []);
 
+  // const getNestedKeys = React.useCallback((obj: any, prefix = ''): string[] => {
+  //   return Object.entries(obj).flatMap(([key, value]) => {
+  //     if (Array.isArray(value) && typeof value[0] === 'object' && value[0] !== null) {
+  //       // Si es un array de objetos → usar [subKey]
+  //       return Object.keys(value[0]).flatMap((subKey) => {
+  //         // const path = prefix ? `${prefix}.${key}[${subKey}]` : `${key}[${subKey}]`;
+  //         const path = prefix ? `${prefix}.${key}._${subKey}` : `${key}._${subKey}`;
+  //         return path;
+  //       });
+  //     } else if (value && typeof value === 'object') {
+  //       // Si es objeto anidado → seguir profundizando
+  //       const path = prefix ? `${prefix}.${key}` : key;
+  //       return getNestedKeys(value, path);
+  //     } else {
+  //       // Valor simple
+  //       const path = prefix ? `${prefix}.${key}` : key;
+  //       return path;
+  //     }
+  //   });
+  // }, []);
   const getNestedKeys = React.useCallback((obj: any, prefix = ''): string[] => {
+    if (Array.isArray(obj)) {
+      return obj.flatMap((item, index) => getNestedKeys(item, `${prefix}[${index}]`));
+    }
+
+    if (typeof obj !== 'object' || obj === null) {
+      return [];
+    }
+
     return Object.entries(obj).flatMap(([key, value]) => {
-      if (Array.isArray(value) && typeof value[0] === 'object' && value[0] !== null) {
-        // Si es un array de objetos → usar [subKey]
-        return Object.keys(value[0]).flatMap((subKey) => {
-          // const path = prefix ? `${prefix}.${key}[${subKey}]` : `${key}[${subKey}]`;
-          const path = prefix ? `${prefix}.${key}._${subKey}` : `${key}._${subKey}`;
-          return path;
-        });
-      } else if (value && typeof value === 'object') {
-        // Si es objeto anidado → seguir profundizando
-        const path = prefix ? `${prefix}.${key}` : key;
-        return getNestedKeys(value, path);
-      } else {
-        // Valor simple
-        const path = prefix ? `${prefix}.${key}` : key;
-        return path;
+      const newPrefix = prefix ? `${prefix}._${key}` : key;
+
+      if (Array.isArray(value)) {
+        if (value.length > 0 && typeof value[0] === 'object') {
+          // Array de objetos: incluir subclaves
+          return value.flatMap((item, i) => 
+            getNestedKeys(item, `${newPrefix}_`)
+          );
+        } else {
+          // Array plano: agregar como clave completa
+          return [newPrefix];
+        }
       }
+
+      if (typeof value === 'object' && value !== null) {
+        return getNestedKeys(value, newPrefix);
+      }
+
+      return [newPrefix];
     });
   }, []);
+
 
 
   const jsonFields = useMemo(() => {
@@ -48,7 +80,17 @@ function App() {
       if (entry) {
         const [key, value] = entry;
         setJsonArrayKey(key);
-        return getNestedKeys((value as Record<string, any>[])[0]);
+        // return getNestedKeys((value as Record<string, any>[])[0]);
+        const allKeys = new Set<string>();
+
+        (value as Record<string, any>[]).forEach(obj => {
+          getNestedKeys(obj).forEach(k => allKeys.add(k));
+        });
+        // limpiar array
+        // reviews[0]._date = reviews._date 
+        // reviews[1]._clave_extrania = reviews._clave_extrania
+        // eliminar repetidos
+        return Array.from(allKeys).sort();
       }
       return [];
     } catch {

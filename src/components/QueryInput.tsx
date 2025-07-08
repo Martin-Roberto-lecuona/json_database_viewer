@@ -41,9 +41,30 @@ export const QueryInput: React.FC<Props> = ({ setQuery, onRun, jsonFields, jsonA
       if (field.includes("[?")) {
         left = field;
       }
+      
+     
+      // products[?(reviews_[?comment && contains(comment, 'Highly')])]
+      else if (field.includes("_._") && !field.includes("[")) {
+        const [arrayField, nestedField] = field.split("_._");
+        console.log("arrayField:", arrayField);
+        console.log("nestedField:", nestedField);
+        if (operator === "contains")
+          left = `${arrayField}[?${nestedField} && contains(${nestedField}, ${valueExpr})]`;
+        else
+          left = `${arrayField}[?${nestedField} ${operator} ${valueExpr}]`;
+      }
       else if (field.includes("._") && !field.includes("[")) {
+        // products[?contains(dimensions.clave_extrania2, 'dimensions')] # deberia
+        // products[?(?dimensions.clave_extrania2 && contains(dimensions.clave_extrania2, 'dim'))]
+        // products[?(dimensions[?clave_extrania2 && contains(clave_extrania2, 'Highly')])]
         const [arrayField, nestedField] = field.split("._");
-        left = `${arrayField}[?${nestedField} ${operator} ${valueExpr}]`;
+        console.log("arrayField:", arrayField);
+        console.log("nestedField:", nestedField);
+        if (operator === "contains")
+          // left = `${arrayField}[?${nestedField} && contains(${nestedField}, ${valueExpr})]`;
+          left = `${arrayField}.${nestedField} && contains(${arrayField}.${nestedField}, ${valueExpr})`;
+        else
+          left = `${arrayField}[?${nestedField} ${operator} ${valueExpr}]`;
       }
       else if (operator === "contains") {
         left = `${field} && contains(${field}, '${value}')`;

@@ -217,7 +217,8 @@
           "comment": "Great product!",
           "date": "2025-04-30T09:41:02.053Z",
           "reviewerName": "Ruby Andrews",
-          "reviewerEmail": "ruby.andrews@x.dummyjson.com"
+          "reviewerEmail": "ruby.andrews@x.dummyjson.com",
+          "clave_extrania": "que es esto? 2"
         },
         {
           "rating": 5,
@@ -259,7 +260,8 @@
       "dimensions": {
         "width": 21.63,
         "height": 16.48,
-        "depth": 29.84
+        "depth": 29.84,
+        "clave_extrania2":"dimensions desconocida"
       },
       "warrantyInformation": "1 month warranty",
       "shippingInformation": "Ships overnight",
@@ -277,7 +279,8 @@
           "comment": "Great product!",
           "date": "2025-04-30T09:41:02.053Z",
           "reviewerName": "Liam Smith",
-          "reviewerEmail": "liam.smith@x.dummyjson.com"
+          "reviewerEmail": "liam.smith@x.dummyjson.com",
+          "clave_extrania": "que es esto?" 
         },
         {
           "rating": 1,
